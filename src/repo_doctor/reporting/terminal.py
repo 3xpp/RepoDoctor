@@ -21,7 +21,7 @@ def render_terminal(report: Report, console: Console | None = None) -> None:
     target = console or Console()
     target.print("Repository readiness", style="bold cyan")
     target.print(f"{report.score}/{report.max_score}", style="bold")
-    target.print(report.summary)
+    target.print(Text(report.summary))
     target.print(Text(f"Repository: {report.repo_path}"))
     passed_count = sum(finding.passed for finding in report.findings)
     target.print(f"{passed_count}/{len(report.findings)} checks passed")

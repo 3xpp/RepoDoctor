@@ -1,8 +1,40 @@
+import re
+
 from repo_doctor.models import Report
+
+LINE_BREAK_RE = re.compile(r"\r\n?|\n")
+BACKTICK_RUN_RE = re.compile(r"`+")
+MARKDOWN_SPECIALS = frozenset("\\`*_{}[]<>|")
+
+
+def _single_line(value: str) -> str:
+    return LINE_BREAK_RE.sub(" ", value)
+
+
+def _escape_inline(value: str) -> str:
+    normalized = _single_line(value)
+    return "".join(
+        f"\\{character}" if character in MARKDOWN_SPECIALS else character
+        for character in normalized
+    )
 
 
 def _escape_cell(value: str) -> str:
-    return value.replace("|", r"\|").replace("\n", " ")
+    return _escape_inline(value)
+
+
+def _code_span(value: str) -> str:
+    normalized = _single_line(value)
+    longest_run = max(
+        (len(match.group()) for match in BACKTICK_RUN_RE.finditer(normalized)),
+        default=0,
+    )
+    delimiter = "`" * (longest_run + 1)
+    if not normalized:
+        return "` `"
+    if normalized.startswith(("`", " ")) or normalized.endswith(("`", " ")):
+        normalized = f" {normalized} "
+    return f"{delimiter}{normalized}{delimiter}"
 
 
 def render_markdown(report: Report) -> str:
@@ -10,11 +42,11 @@ def render_markdown(report: Report) -> str:
     lines = [
         "# GitHub Repo Doctor Report",
         "",
-        f"- **Repository:** `{report.repo_path}`",
+        f"- **Repository:** {_code_span(report.repo_path)}",
         f"- **Score:** {report.score}/{report.max_score}",
-        f"- **Summary:** {report.summary}",
-        f"- **Generated:** {generated_at}",
-        f"- **Version:** {report.version}",
+        f"- **Summary:** {_escape_inline(report.summary)}",
+        f"- **Generated:** {_escape_inline(generated_at)}",
+        f"- **Version:** {_escape_inline(report.version)}",
         "",
         "## Findings",
         "",
@@ -23,7 +55,7 @@ def render_markdown(report: Report) -> str:
     ]
     for finding in report.findings:
         status = "Passed" if finding.passed else "Failed"
-        check = f"{finding.title} (`{finding.id}`)"
+        check = f"{finding.title} ({finding.id})"
         lines.append(
             "| "
             + " | ".join(
@@ -42,7 +74,10 @@ def render_markdown(report: Report) -> str:
     lines.extend(["", "## Recommendations", ""])
     failed = [finding for finding in report.findings if not finding.passed]
     if failed:
-        lines.extend(f"- **{finding.title}:** {finding.recommendation}" for finding in failed)
+        lines.extend(
+            (f"- **{_escape_inline(finding.title)}:** {_escape_inline(finding.recommendation)}")
+            for finding in failed
+        )
     else:
         lines.append("- No readiness issues found.")
     return "\n".join(lines) + "\n"
