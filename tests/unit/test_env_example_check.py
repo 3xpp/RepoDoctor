@@ -22,6 +22,11 @@ def test_config_interpolation_is_not_applied_to_source_files(tmp_path) -> None:
     assert EnvExampleCheck().run(tmp_path).passed is True
 
 
+def test_undecodable_candidate_is_skipped(tmp_path) -> None:
+    (tmp_path / "app.py").write_bytes(b"\xffos.getenv('APP_MODE')\n")
+    assert EnvExampleCheck().run(tmp_path).passed is True
+
+
 def test_full_scanner_never_reads_protected_env_path(tmp_path, monkeypatch) -> None:
     protected = (tmp_path / ".env", tmp_path / ".env.example")
     monkeypatch.setattr(env_module, "_iter_candidate_files", lambda _repo: iter(protected))

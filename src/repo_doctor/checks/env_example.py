@@ -74,8 +74,8 @@ def _path_has_env_usage(
     try:
         if not path.is_file() or path.stat().st_size > MAX_TEXT_FILE_BYTES:
             return False
-        text = path.read_text(encoding="utf-8", errors="ignore")
-    except OSError:
+        text = path.read_text(encoding="utf-8")
+    except (OSError, UnicodeDecodeError):
         return False
     if path == readme_path:
         return README_ENV_RE.search(text) is not None
