@@ -27,16 +27,16 @@ def _single_line(value: str) -> str:
 
 def render_terminal(report: Report, console: Console | None = None) -> None:
     target = console or Console()
-    target.print("Repository readiness", style="bold cyan")
-    target.print(f"{report.score}/{report.max_score}", style="bold")
-    target.print(Text(_single_line(report.summary)))
-    target.print(Text(f"Repository: {_single_line(report.repo_path)}"))
+    target.print("Repository readiness", style="bold cyan", soft_wrap=True)
+    target.print(f"{report.score}/{report.max_score}", style="bold", soft_wrap=True)
+    target.print(Text(_single_line(report.summary)), soft_wrap=True)
+    target.print(Text(f"Repository: {_single_line(report.repo_path)}"), soft_wrap=True)
     passed_count = sum(finding.passed for finding in report.findings)
-    target.print(f"{passed_count}/{len(report.findings)} checks passed")
+    target.print(f"{passed_count}/{len(report.findings)} checks passed", soft_wrap=True)
 
     failures = [finding for finding in report.findings if not finding.passed]
     if not failures:
-        target.print("No readiness issues found.", style="green")
+        target.print("No readiness issues found.", style="green", soft_wrap=True)
         return
 
     for severity in SEVERITY_ORDER:
@@ -47,8 +47,9 @@ def render_terminal(report: Report, console: Console | None = None) -> None:
         target.print(
             f"{severity.value.upper()} findings",
             style=SEVERITY_STYLES[severity],
+            soft_wrap=True,
         )
         for finding in grouped:
             title = _single_line(finding.title)
             recommendation = _single_line(finding.recommendation)
-            target.print(Text(f"- {title}: {recommendation}"))
+            target.print(Text(f"- {title}: {recommendation}"), soft_wrap=True)

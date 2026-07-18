@@ -9,6 +9,7 @@ description = "A practical local readiness scanner for GitHub-style repositories
 readme = "README.md"
 requires-python = ">=3.12"
 license = "MIT"
+license-files = ["LICENSE"]
 keywords = ["github", "repository", "cli", "open-source", "readiness"]
 classifiers = [
   "Development Status :: 3 - Alpha",

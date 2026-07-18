@@ -43,8 +43,8 @@ unless `--fail-under` is supplied.
 
 ## Example terminal report
 
-An intentionally incomplete repository produces output shaped like this (a narrow
-terminal may wrap long lines):
+An intentionally incomplete repository produces this output. Captured logical lines
+remain stable regardless of the Rich console width:
 
 ```text
 Repository readiness

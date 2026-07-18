@@ -126,6 +126,24 @@ def test_terminal_normalizes_dynamic_control_characters(
     assert "\nFAKE" not in rendered
 
 
+def test_terminal_keeps_logical_lines_unbroken_at_narrow_width(
+    fixed_report: Report,
+) -> None:
+    repository = "/tmp/a-repository-path-that-is-much-wider-than-the-console"
+    recommendation = "Add a detailed installation guide with prerequisites and verification steps."
+    finding = fixed_report.findings[1].model_copy(
+        update={"title": "README guidance", "recommendation": recommendation}
+    )
+    report = fixed_report.model_copy(update={"repo_path": repository, "findings": (finding,)})
+    console = Console(record=True, color_system=None, width=20)
+
+    render_terminal(report, console)
+    rendered = console.export_text()
+
+    assert f"Repository: {repository}\n" in rendered
+    assert f"- README guidance: {recommendation}\n" in rendered
+
+
 def test_terminal_groups_failures_in_severity_order(fixed_report: Report) -> None:
     base = fixed_report.findings[1]
     findings = tuple(
