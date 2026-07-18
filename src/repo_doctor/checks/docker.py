@@ -2,13 +2,15 @@ from pathlib import Path
 
 from repo_doctor.models import Finding, Severity
 
-DOCKER_FILES = frozenset({
-    "Dockerfile",
-    "docker-compose.yml",
-    "docker-compose.yaml",
-    "compose.yml",
-    "compose.yaml",
-})
+DOCKER_FILES = frozenset(
+    {
+        "Dockerfile",
+        "docker-compose.yml",
+        "docker-compose.yaml",
+        "compose.yml",
+        "compose.yaml",
+    }
+)
 
 
 class DockerCheck:

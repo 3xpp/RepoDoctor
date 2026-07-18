@@ -28,9 +28,7 @@ def finding(severity: Severity, *, passed: bool = False) -> Finding:
         (Severity.INFO, 100),
     ],
 )
-def test_failed_findings_use_severity_deductions(
-    severity: Severity, expected: int
-) -> None:
+def test_failed_findings_use_severity_deductions(severity: Severity, expected: int) -> None:
     assert calculate_score([finding(severity)]) == expected
 
 
@@ -91,9 +89,7 @@ def test_report_normalizes_generated_timestamp_to_utc() -> None:
         max_score=100,
         summary="Excellent readiness.",
         findings=(),
-        generated_at=datetime(
-            2026, 7, 18, 14, tzinfo=timezone(timedelta(hours=2))
-        ),
+        generated_at=datetime(2026, 7, 18, 14, tzinfo=timezone(timedelta(hours=2))),
         version="0.1.0",
     )
     assert report.generated_at == datetime(2026, 7, 18, 12, tzinfo=UTC)

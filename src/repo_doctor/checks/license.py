@@ -2,26 +2,26 @@ from pathlib import Path
 
 from repo_doctor.models import Finding, Severity
 
-LICENSE_NAMES = frozenset({
-    "license",
-    "license.md",
-    "license.txt",
-    "licence",
-    "licence.md",
-    "licence.txt",
-    "copying",
-    "copying.md",
-    "copying.txt",
-    "unlicense",
-})
+LICENSE_NAMES = frozenset(
+    {
+        "license",
+        "license.md",
+        "license.txt",
+        "licence",
+        "licence.md",
+        "licence.txt",
+        "copying",
+        "copying.md",
+        "copying.txt",
+        "unlicense",
+    }
+)
 
 
 class LicenseCheck:
     def run(self, repo_path: Path) -> Finding:
         passed = any(
-            not entry.is_symlink()
-            and entry.is_file()
-            and entry.name.casefold() in LICENSE_NAMES
+            not entry.is_symlink() and entry.is_file() and entry.name.casefold() in LICENSE_NAMES
             for entry in repo_path.iterdir()
         )
         return Finding(

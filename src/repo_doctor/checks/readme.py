@@ -22,17 +22,11 @@ FENCE_RE = re.compile(r"^ {0,3}(`{3,}|~{3,})")
 
 def find_readme(repo_path: Path) -> Path | None:
     entries = sorted(
-        (
-            entry
-            for entry in repo_path.iterdir()
-            if not entry.is_symlink() and entry.is_file()
-        ),
+        (entry for entry in repo_path.iterdir() if not entry.is_symlink() and entry.is_file()),
         key=lambda entry: entry.name,
     )
     for candidate_name in README_PRIORITY:
-        matches = [
-            entry for entry in entries if entry.name.casefold() == candidate_name
-        ]
+        matches = [entry for entry in entries if entry.name.casefold() == candidate_name]
         if matches:
             return matches[0]
     return None
