@@ -38,13 +38,17 @@ PROTECTED_BASENAMES = frozenset({
 PROTECTED_SUFFIXES = frozenset({".pem", ".key", ".p12", ".pfx", ".keystore"})
 
 
-def is_protected_path(path: Path) -> bool:
-    name = path.name.casefold()
+def _is_protected_name(name: str) -> bool:
+    normalized = name.casefold()
     return (
-        name in PROTECTED_BASENAMES
-        or name.startswith(".env.")
-        or path.suffix.casefold() in PROTECTED_SUFFIXES
+        normalized in PROTECTED_BASENAMES
+        or normalized.startswith(".env.")
+        or Path(normalized).suffix in PROTECTED_SUFFIXES
     )
+
+
+def is_protected_path(path: Path) -> bool:
+    return any(_is_protected_name(part) for part in path.parts)
 
 
 def iter_repository_files(repo_path: Path) -> Iterator[Path]:
@@ -55,9 +59,10 @@ def iter_repository_files(repo_path: Path) -> Iterator[Path]:
             name
             for name in dir_names
             if name not in EXCLUDED_DIRECTORIES
+            and not _is_protected_name(name)
             and not (directory / name).is_symlink()
         )
         for name in sorted(file_names):
             candidate = directory / name
-            if not candidate.is_symlink():
+            if not _is_protected_name(name) and not candidate.is_symlink():
                 yield candidate

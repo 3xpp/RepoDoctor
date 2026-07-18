@@ -15,7 +15,9 @@ RECOGNIZED_SECTIONS = {
     "license": ("license", "licence"),
 }
 ATX_HEADING_RE = re.compile(r"^\s*#{1,6}\s+(.+?)\s*#*\s*$")
-UNDERLINE_RE = re.compile(r"^\s*([=\-~^\"'`:+*#<>_])\1{2,}\s*$")
+MARKDOWN_UNDERLINE_RE = re.compile(r"^\s*([=\-])\1{2,}\s*$")
+RST_UNDERLINE_RE = re.compile(r"^\s*([=\-~^\"'`:+*#<>_])\1{2,}\s*$")
+FENCE_RE = re.compile(r"^ {0,3}(`{3,}|~{3,})")
 
 
 def find_readme(repo_path: Path) -> Path | None:
@@ -36,19 +38,54 @@ def find_readme(repo_path: Path) -> Path | None:
     return None
 
 
-def _extract_headings(text: str) -> list[str]:
+def _is_indented_code(line: str) -> bool:
+    indentation = line[: len(line) - len(line.lstrip(" \t"))]
+    return "\t" in indentation or len(indentation) >= 4
+
+
+def _markdown_fenced_lines(lines: list[str]) -> set[int]:
+    fenced_lines: set[int] = set()
+    opening_marker: str | None = None
+    for index, line in enumerate(lines):
+        fence_match = FENCE_RE.match(line)
+        if opening_marker is None:
+            if fence_match:
+                opening_marker = fence_match.group(1)
+                fenced_lines.add(index)
+            continue
+
+        fenced_lines.add(index)
+        if fence_match:
+            marker = fence_match.group(1)
+            if (
+                marker[0] == opening_marker[0]
+                and len(marker) >= len(opening_marker)
+                and not line[fence_match.end() :].strip()
+            ):
+                opening_marker = None
+    return fenced_lines
+
+
+def _extract_headings(text: str, *, is_rst: bool = False) -> list[str]:
     headings: list[str] = []
     lines = text.splitlines()
+    fenced_lines = set() if is_rst else _markdown_fenced_lines(lines)
+    underline_re = RST_UNDERLINE_RE if is_rst else MARKDOWN_UNDERLINE_RE
     for index, line in enumerate(lines):
+        if index in fenced_lines or _is_indented_code(line):
+            continue
         atx_match = ATX_HEADING_RE.fullmatch(line)
         if atx_match:
             headings.append(atx_match.group(1))
-        if (
-            index + 1 < len(lines)
-            and line.strip()
-            and UNDERLINE_RE.fullmatch(lines[index + 1])
-        ):
-            headings.append(line.strip())
+        if index + 1 < len(lines):
+            next_line = lines[index + 1]
+            if (
+                line.strip()
+                and index + 1 not in fenced_lines
+                and not _is_indented_code(next_line)
+                and underline_re.fullmatch(next_line)
+            ):
+                headings.append(line.strip())
     return headings
 
 
@@ -99,7 +136,11 @@ class ReadmeSectionsCheck:
                 text = readme.read_text(encoding="utf-8", errors="ignore")
             except OSError:
                 text = ""
-            section_count = _recognized_section_count(_extract_headings(text))
+            headings = _extract_headings(
+                text,
+                is_rst=readme.suffix.casefold() == ".rst",
+            )
+            section_count = _recognized_section_count(headings)
         passed = section_count >= 2
         return Finding(
             id="readme-sections",
