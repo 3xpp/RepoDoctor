@@ -24,7 +24,8 @@ class TestsCheck:
         passed = (
             not tests_directory.is_symlink() and tests_directory.is_dir()
         ) or any(
-            any(fnmatch(path.name, pattern) for pattern in TEST_PATTERNS)
+            path.is_file()
+            and any(fnmatch(path.name, pattern) for pattern in TEST_PATTERNS)
             for path in iter_repository_files(repo_path)
         )
         return Finding(
