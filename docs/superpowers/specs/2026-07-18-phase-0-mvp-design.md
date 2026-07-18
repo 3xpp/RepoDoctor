@@ -21,7 +21,7 @@ The target users are students, junior developers, indie hackers, open-source mai
 
 ## Non-goals
 
-Phase 0 does not include remote repositories, GitHub authentication or APIs, automatic fixes, vulnerability scanning, dependency-graph analysis, AI services, a web application, a database, or telemetry. Repository inspection is read-only. The CLI may create or replace only the report file explicitly requested with `--output`, including when that path is inside the scanned repository.
+Phase 0 does not include remote repositories, GitHub authentication or APIs, automatic fixes, vulnerability scanning, dependency-graph analysis, AI services, a web application, a database, or telemetry. Repository inspection is read-only. The CLI may create or replace only the report file explicitly requested with `--output`, including when that path is inside the scanned repository, but it refuses every protected environment, credential, or private-key filename defined by the secret-safety rules.
 
 ## Initialization Status
 
@@ -119,7 +119,7 @@ Filesystem inspection is read-only. Explicit report-file writing belongs only to
 
 Recursive content discovery prunes exactly these directory names: `.git`, `.hg`, `.svn`, `.venv`, `venv`, `env`, `node_modules`, `__pycache__`, `.pytest_cache`, `.mypy_cache`, `.ruff_cache`, `.tox`, `.nox`, `dist`, `build`, `coverage`, and `htmlcov`.
 
-The environment detector considers regular files with these lowercase suffixes: `.py`, `.js`, `.jsx`, `.ts`, `.tsx`, `.mjs`, `.cjs`, `.toml`, `.yaml`, `.yml`, `.json`, `.ini`, `.cfg`, `.conf`, and `.sh`. It additionally considers the selected root README and the five supported root Compose filenames. Files larger than 1 MiB are rejected before content is opened.
+The environment detector considers regular files with these lowercase suffixes: `.py`, `.js`, `.jsx`, `.ts`, `.tsx`, `.mjs`, `.cjs`, `.toml`, `.yaml`, `.yml`, `.json`, `.ini`, `.cfg`, `.conf`, and `.sh`. It additionally considers the selected root README and the four supported root Compose filenames. Files larger than 1 MiB are rejected before content is opened.
 
 Protection is applied before metadata size checks or content reads. The detector rejects basename `.env`, every basename starting with `.env.`, `.envrc`, `.npmrc`, `.pypirc`, `credentials`, `credentials.json`, `secrets.json`, `secrets.yaml`, `secrets.yml`, `secrets.toml`, `service-account.json`, `id_rsa`, and `id_ed25519`. It also rejects suffixes `.pem`, `.key`, `.p12`, `.pfx`, and `.keystore`. Existence of `.env.example` is checked through directory-entry metadata only and its contents are never opened.
 
@@ -159,7 +159,7 @@ repo-doctor scan PATH [--format terminal|json|markdown] [--output FILE] [--fail-
 - `--format` defaults to `terminal`.
 - Terminal output shows the repository, score, summary, passed-check count, failures grouped high-to-low, and recommendations.
 - JSON and Markdown print to standard output unless `--output` is supplied.
-- `--output` writes UTF-8 text and creates missing parent directories. It is supported for JSON and Markdown, not terminal rendering.
+- `--output` writes UTF-8 text and creates missing parent directories. It is supported for JSON and Markdown, not terminal rendering. A protected basename or suffix is rejected before directories are created or files are opened.
 - A normal scan exits 0 regardless of score.
 - If `--fail-under` is provided and the score is lower, rendering or file writing completes and the process exits 1.
 - Invalid paths, invalid thresholds, unsupported option combinations, and output failures produce concise messages and exit 2.
