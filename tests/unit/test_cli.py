@@ -1,4 +1,5 @@
 import json
+import os
 from pathlib import Path
 
 import pytest
@@ -125,6 +126,56 @@ def test_broken_output_parent_symlink_is_refused(tmp_path: Path) -> None:
     assert output_parent.is_symlink()
 
 
+def test_normalized_output_refuses_symlink_before_creating_directories(tmp_path: Path) -> None:
+    target_parent = tmp_path / "real-reports"
+    target_parent.mkdir()
+    output_parent = tmp_path / "reports"
+    output_parent.symlink_to(target_parent, target_is_directory=True)
+    output = tmp_path / "missing" / ".." / "reports" / "new" / "report.json"
+
+    result = runner.invoke(
+        app,
+        ["scan", str(tmp_path), "--format", "json", "--output", str(output)],
+    )
+
+    assert result.exit_code == 2
+    assert (tmp_path / "missing").exists() is False
+    assert (target_parent / "new").exists() is False
+
+
+def test_relative_output_from_protected_named_cwd_is_refused(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    protected_named_cwd = tmp_path / "credentials"
+    protected_named_cwd.mkdir()
+    monkeypatch.chdir(protected_named_cwd)
+
+    result = runner.invoke(
+        app,
+        ["scan", str(tmp_path), "--format", "json", "--output", "report.json"],
+    )
+
+    assert result.exit_code == 2
+    assert (protected_named_cwd / "report.json").exists() is False
+
+
+@pytest.mark.skipif(not hasattr(os, "mkfifo"), reason="FIFO files are not supported")
+def test_fifo_output_target_is_refused_without_opening_it(tmp_path: Path) -> None:
+    repo = tmp_path / "repo"
+    repo.mkdir()
+    output = tmp_path / "report.json"
+    os.mkfifo(output)
+
+    result = runner.invoke(
+        app,
+        ["scan", str(repo), "--format", "json", "--output", str(output)],
+    )
+
+    assert result.exit_code == 2
+    assert output.exists()
+    assert output.stat().st_size == 0
+
+
 def test_markdown_output_file_is_written(tmp_path: Path) -> None:
     output = tmp_path / "report.md"
     result = runner.invoke(
@@ -149,6 +200,39 @@ def test_missing_repository_exits_two(tmp_path: Path) -> None:
 def test_threshold_bounds_exit_two(tmp_path: Path, value: str) -> None:
     result = runner.invoke(app, ["scan", str(tmp_path), "--fail-under", value])
     assert result.exit_code == 2
+
+
+def test_json_threshold_failure_keeps_stdout_machine_readable(tmp_path: Path) -> None:
+    result = runner.invoke(
+        app,
+        ["scan", str(tmp_path), "--format", "json", "--fail-under", "80"],
+    )
+
+    assert result.exit_code == 1
+    assert json.loads(result.stdout)["score"] == 25
+
+
+def test_output_file_is_written_before_threshold_failure(tmp_path: Path) -> None:
+    repo = tmp_path / "repo"
+    repo.mkdir()
+    output = tmp_path / "report.json"
+
+    result = runner.invoke(
+        app,
+        [
+            "scan",
+            str(repo),
+            "--format",
+            "json",
+            "--output",
+            str(output),
+            "--fail-under",
+            "80",
+        ],
+    )
+
+    assert result.exit_code == 1
+    assert json.loads(output.read_text(encoding="utf-8"))["score"] == 25
 
 
 def test_output_io_failure_exits_two(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:

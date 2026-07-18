@@ -1,3 +1,4 @@
+import os
 import stat
 from enum import StrEnum
 from pathlib import Path
@@ -34,14 +35,17 @@ def _exit_error(message: str) -> NoReturn:
     raise typer.Exit(code=2)
 
 
+def _normalize_output_path(path: Path) -> Path:
+    return Path(os.path.abspath(os.path.normpath(os.fspath(path))))
+
+
 def _is_protected_output(path: Path) -> bool:
-    return any(is_protected_path(Path(part)) for part in path.parts)
+    return is_protected_path(path)
 
 
 def _has_symlink_component(path: Path) -> bool:
-    absolute = path if path.is_absolute() else Path.cwd() / path
-    candidate = Path(absolute.anchor)
-    for part in absolute.parts[1:]:
+    candidate = Path(path.anchor)
+    for part in path.parts[1:]:
         candidate /= part
         try:
             mode = candidate.lstat().st_mode
@@ -57,6 +61,13 @@ def _validate_output_path(path: Path) -> None:
         raise ValueError("refusing to write a report to a protected secret path")
     if _has_symlink_component(path):
         raise ValueError("refusing to write a report through a symbolic link")
+
+    try:
+        mode = path.lstat().st_mode
+    except FileNotFoundError:
+        return
+    if not stat.S_ISREG(mode):
+        raise ValueError("refusing to replace a non-regular output target")
 
 
 def _write_report(path: Path, content: str) -> None:
@@ -94,6 +105,7 @@ def scan(
     if output is not None and output_format is OutputFormat.TERMINAL:
         _exit_error("--output requires JSON or Markdown format")
     if output is not None:
+        output = _normalize_output_path(output)
         try:
             _validate_output_path(output)
         except (OSError, ValueError) as exc:
