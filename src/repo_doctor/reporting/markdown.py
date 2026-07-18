@@ -4,11 +4,12 @@ from repo_doctor.models import Report
 
 LINE_BREAK_RE = re.compile(r"\r\n?|\n")
 BACKTICK_RUN_RE = re.compile(r"`+")
-MARKDOWN_SPECIALS = frozenset("\\`*_{}[]<>|")
+MARKDOWN_SPECIALS = frozenset("\\`*_{}[]<>|~")
 
 
 def _single_line(value: str) -> str:
-    return LINE_BREAK_RE.sub(" ", value)
+    normalized = LINE_BREAK_RE.sub(" ", value)
+    return "".join(character if character.isprintable() else " " for character in normalized)
 
 
 def _escape_inline(value: str) -> str:
@@ -25,13 +26,13 @@ def _escape_cell(value: str) -> str:
 
 def _code_span(value: str) -> str:
     normalized = _single_line(value)
+    if not normalized or normalized.isspace():
+        normalized = repr(normalized)
     longest_run = max(
         (len(match.group()) for match in BACKTICK_RUN_RE.finditer(normalized)),
         default=0,
     )
     delimiter = "`" * (longest_run + 1)
-    if not normalized:
-        return "` `"
     if normalized.startswith(("`", " ")) or normalized.endswith(("`", " ")):
         normalized = f" {normalized} "
     return f"{delimiter}{normalized}{delimiter}"

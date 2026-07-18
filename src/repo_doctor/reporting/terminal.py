@@ -1,8 +1,11 @@
+import re
+
 from rich.console import Console
 from rich.text import Text
 
 from repo_doctor.models import Report, Severity
 
+LINE_BREAK_RE = re.compile(r"\r\n?|\n")
 SEVERITY_ORDER = (
     Severity.HIGH,
     Severity.MEDIUM,
@@ -17,12 +20,17 @@ SEVERITY_STYLES = {
 }
 
 
+def _single_line(value: str) -> str:
+    normalized = LINE_BREAK_RE.sub(" ", value)
+    return "".join(character if character.isprintable() else " " for character in normalized)
+
+
 def render_terminal(report: Report, console: Console | None = None) -> None:
     target = console or Console()
     target.print("Repository readiness", style="bold cyan")
     target.print(f"{report.score}/{report.max_score}", style="bold")
-    target.print(Text(report.summary))
-    target.print(Text(f"Repository: {report.repo_path}"))
+    target.print(Text(_single_line(report.summary)))
+    target.print(Text(f"Repository: {_single_line(report.repo_path)}"))
     passed_count = sum(finding.passed for finding in report.findings)
     target.print(f"{passed_count}/{len(report.findings)} checks passed")
 
@@ -41,4 +49,6 @@ def render_terminal(report: Report, console: Console | None = None) -> None:
             style=SEVERITY_STYLES[severity],
         )
         for finding in grouped:
-            target.print(Text(f"- {finding.title}: {finding.recommendation}"))
+            title = _single_line(finding.title)
+            recommendation = _single_line(finding.recommendation)
+            target.print(Text(f"- {title}: {recommendation}"))
