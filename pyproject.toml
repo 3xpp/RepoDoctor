@@ -1,0 +1,51 @@
+[build-system]
+requires = ["uv_build>=0.11.0,<0.12.0"]
+build-backend = "uv_build"
+
+[project]
+name = "github-repo-doctor"
+version = "0.1.0"
+description = "A practical local readiness scanner for GitHub-style repositories."
+readme = "README.md"
+requires-python = ">=3.12"
+license = "MIT"
+keywords = ["github", "repository", "cli", "open-source", "readiness"]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Environment :: Console",
+  "License :: OSI Approved :: MIT License",
+  "Programming Language :: Python :: 3.12",
+  "Typing :: Typed",
+]
+dependencies = [
+  "pydantic>=2.10,<3",
+  "rich>=13.9,<15",
+  "typer>=0.15,<1",
+]
+
+[dependency-groups]
+dev = [
+  "mypy>=1.14,<2",
+  "pytest>=8.3,<10",
+  "ruff>=0.9,<1",
+]
+
+[tool.uv.build-backend]
+module-name = "repo_doctor"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra"
+
+[tool.ruff]
+target-version = "py312"
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP"]
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+pretty = true
+files = ["src"]
