@@ -30,3 +30,36 @@ def test_fixture_json_cli_output_is_valid() -> None:
 def test_bad_fixture_fails_requested_threshold() -> None:
     result = runner.invoke(app, ["scan", str(FIXTURES / "bad_repo"), "--fail-under", "80"])
     assert result.exit_code == 1
+
+
+def test_configured_repository_uses_discovery_and_custom_scoring(tmp_path: Path) -> None:
+    policy = tmp_path / ".repo-doctor.toml"
+    policy.write_text(
+        "version = 1\n"
+        "[scoring]\nhigh = 30\nmedium = 10\nlow = 5\ninfo = 0\n"
+        "[checks.docker-exists]\nenabled = false\n",
+        encoding="utf-8",
+    )
+
+    result = runner.invoke(app, ["scan", str(tmp_path), "--format", "json"])
+
+    payload = json.loads(result.stdout)
+    assert result.exit_code == 0
+    assert payload["score"] == 10
+    assert [finding["id"] for finding in payload["findings"]] == [
+        "readme-exists",
+        "readme-sections",
+        "license-exists",
+        "tests-exist",
+        "ci-exists",
+        "env-example",
+    ]
+    assert list(payload) == [
+        "repo_path",
+        "score",
+        "max_score",
+        "summary",
+        "findings",
+        "generated_at",
+        "version",
+    ]
