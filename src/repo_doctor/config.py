@@ -219,15 +219,24 @@ def resolve_configuration(
     if len(explicit_paths) > 1:
         raise ConfigError("--config may be provided only once")
     if explicit_paths:
-        candidate = normalize_local_path(explicit_paths[0], expand_user=True)
+        try:
+            candidate = normalize_local_path(explicit_paths[0], expand_user=True)
+        except (OSError, RuntimeError) as error:
+            raise ConfigError("configuration path cannot be normalized") from error
         return LoadedConfiguration(_load_config_file(candidate), candidate)
 
     candidate = repo_root / CONFIG_FILENAME
     _reject_protected_config_path(candidate)
     try:
+        if has_symlink_component(candidate):
+            raise ConfigError(
+                f"refusing to read configuration through a symbolic link: {candidate}"
+            )
         candidate.lstat()
     except FileNotFoundError:
         return LoadedConfiguration(DEFAULT_CONFIG, None)
+    except ConfigError:
+        raise
     except OSError as error:
         raise ConfigError(f"configuration file cannot be accessed: {candidate}") from error
     return LoadedConfiguration(_load_config_file(candidate), candidate)

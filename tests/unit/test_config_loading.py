@@ -106,6 +106,27 @@ def test_explicit_path_expands_user_lexically(
     assert loaded.source_path == policy
 
 
+@pytest.mark.parametrize("error_type", [RuntimeError, OSError])
+def test_explicit_path_normalization_failure_is_sanitized(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    error_type: type[Exception],
+) -> None:
+    requested = Path("~/policy.toml")
+    sentinel = "RAW_PATH_ERROR_MUST_NOT_LEAK"
+
+    def fail_expanduser(path: Path) -> Path:
+        assert path == requested
+        raise error_type(sentinel)
+
+    monkeypatch.setattr(Path, "expanduser", fail_expanduser)
+
+    with pytest.raises(ConfigError, match="path cannot be normalized") as captured:
+        resolve_configuration(tmp_path, explicit_paths=(requested,))
+
+    assert sentinel not in str(captured.value)
+
+
 def test_explicit_path_is_normalized_lexically(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
@@ -129,6 +150,18 @@ def test_missing_explicit_config_is_an_error(tmp_path: Path) -> None:
             tmp_path,
             explicit_paths=(tmp_path / "missing-policy.toml",),
         )
+
+
+@pytest.mark.parametrize("broken", [False, True])
+def test_automatic_config_rejects_symlinked_repository_root(tmp_path: Path, broken: bool) -> None:
+    real_root = tmp_path / ("missing-root" if broken else "real-root")
+    if not broken:
+        real_root.mkdir()
+    linked_root = tmp_path / "linked-root"
+    linked_root.symlink_to(real_root, target_is_directory=True)
+
+    with pytest.raises(ConfigError, match="symbolic link"):
+        resolve_configuration(linked_root)
 
 
 def test_exact_size_limit_is_accepted(tmp_path: Path) -> None:
