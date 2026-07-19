@@ -1,3 +1,5 @@
+from pathlib import Path
+
 import pytest
 
 from repo_doctor.checks.readme import ReadmeExistsCheck, ReadmeSectionsCheck
@@ -34,3 +36,54 @@ def test_readme_priority_is_deterministic(tmp_path) -> None:
         "Installation\n============\n\nUsage\n-----\n", encoding="utf-8"
     )
     assert ReadmeSectionsCheck().run(tmp_path).passed is False
+
+
+def test_excluded_readme_policy_is_rejected_before_metadata_or_content(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    policy = tmp_path / "README.md"
+    policy.write_text("version = 1\n", encoding="utf-8")
+    excluded_paths = frozenset({policy})
+
+    original_is_symlink = Path.is_symlink
+    original_is_file = Path.is_file
+    original_read_text = Path.read_text
+
+    def guarded_is_symlink(path: Path) -> bool:
+        if path == policy:
+            raise AssertionError("excluded policy symlink metadata was inspected")
+        return original_is_symlink(path)
+
+    def guarded_is_file(path: Path) -> bool:
+        if path == policy:
+            raise AssertionError("excluded policy file metadata was inspected")
+        return original_is_file(path)
+
+    def guarded_read_text(path: Path, *args, **kwargs) -> str:
+        if path == policy:
+            raise AssertionError("excluded policy content was read")
+        return original_read_text(path, *args, **kwargs)
+
+    monkeypatch.setattr(Path, "is_symlink", guarded_is_symlink)
+    monkeypatch.setattr(Path, "is_file", guarded_is_file)
+    monkeypatch.setattr(Path, "read_text", guarded_read_text)
+
+    assert (
+        ReadmeExistsCheck()
+        .run(
+            tmp_path,
+            excluded_paths=excluded_paths,
+        )
+        .passed
+        is False
+    )
+    assert (
+        ReadmeSectionsCheck()
+        .run(
+            tmp_path,
+            excluded_paths=excluded_paths,
+        )
+        .passed
+        is False
+    )

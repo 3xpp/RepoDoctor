@@ -40,6 +40,22 @@ def test_other_toml_environment_signal_still_requires_example(tmp_path: Path) ->
     assert finding.passed is False
 
 
+def test_excluded_readme_policy_does_not_shadow_genuine_readme(tmp_path: Path) -> None:
+    policy = tmp_path / "README.md"
+    policy.write_text("version = 1\n", encoding="utf-8")
+    (tmp_path / "README.rst").write_text(
+        "Setup\n=====\n\nCopy ``.env`` before running the project.\n",
+        encoding="utf-8",
+    )
+
+    finding = EnvExampleCheck().run(
+        tmp_path,
+        excluded_paths=frozenset({policy}),
+    )
+
+    assert finding.passed is False
+
+
 def test_full_scanner_never_reads_protected_env_path(tmp_path, monkeypatch) -> None:
     protected = (tmp_path / ".env", tmp_path / ".env.example")
     monkeypatch.setattr(

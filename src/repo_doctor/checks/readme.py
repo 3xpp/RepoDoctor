@@ -20,12 +20,17 @@ RST_UNDERLINE_RE = re.compile(r"^\s*([=\-~^\"'`:+*#<>_])\1{2,}\s*$")
 FENCE_RE = re.compile(r"^ {0,3}(`{3,}|~{3,})")
 
 
-def find_readme(repo_path: Path) -> Path | None:
+def find_readme(
+    repo_path: Path,
+    *,
+    excluded_paths: frozenset[Path] = frozenset(),
+) -> Path | None:
     entries = sorted(
         (
             entry
             for entry in repo_path.iterdir()
             if entry.name.casefold() in README_PRIORITY
+            and entry not in excluded_paths
             and not entry.is_symlink()
             and entry.is_file()
         ),
@@ -116,7 +121,7 @@ class ReadmeExistsCheck:
         *,
         excluded_paths: frozenset[Path] = frozenset(),
     ) -> Finding:
-        passed = find_readme(repo_path) is not None
+        passed = find_readme(repo_path, excluded_paths=excluded_paths) is not None
         return Finding(
             id=self.id,
             title="README exists",
@@ -147,7 +152,7 @@ class ReadmeSectionsCheck:
         *,
         excluded_paths: frozenset[Path] = frozenset(),
     ) -> Finding:
-        readme = find_readme(repo_path)
+        readme = find_readme(repo_path, excluded_paths=excluded_paths)
         section_count = 0
         if readme is not None:
             try:

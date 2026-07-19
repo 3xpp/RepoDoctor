@@ -109,7 +109,7 @@ class EnvExampleCheck:
         *,
         excluded_paths: frozenset[Path] = frozenset(),
     ) -> Finding:
-        readme = find_readme(repo_path)
+        readme = find_readme(repo_path, excluded_paths=excluded_paths)
         usage_detected = any(
             _path_has_env_usage(path, readme, repo_path)
             for path in _iter_candidate_files(
