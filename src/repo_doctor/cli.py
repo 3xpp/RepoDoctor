@@ -152,7 +152,10 @@ def scan(
 
     reserved_root_policy = resolved_repo / CONFIG_FILENAME
     if output is not None:
-        output = normalize_local_path(output)
+        try:
+            output = normalize_local_path(output)
+        except (OSError, RuntimeError):
+            _exit_error("report output path cannot be normalized")
         try:
             _validate_output_path(
                 output,

@@ -251,6 +251,32 @@ def test_output_io_failure_exits_two(tmp_path: Path, monkeypatch: pytest.MonkeyP
     assert result.exit_code == 2
 
 
+@pytest.mark.parametrize("error_type", [OSError, RuntimeError])
+def test_output_path_normalization_failure_has_clean_error(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    error_type: type[Exception],
+) -> None:
+    sentinel = "OUTPUT_NORMALIZATION_SENTINEL_MUST_NOT_LEAK"
+
+    def fail_normalization(_path: Path) -> Path:
+        raise error_type(sentinel)
+
+    monkeypatch.setattr(cli_module, "normalize_local_path", fail_normalization)
+
+    result = runner.invoke(
+        app,
+        ["scan", str(tmp_path), "--format", "json", "--output", "report.json"],
+    )
+
+    assert result.exit_code == 2
+    assert result.stdout == ""
+    assert result.stderr.startswith("Error: ")
+    assert "report output path cannot be normalized" in result.stderr
+    assert sentinel not in result.stderr
+    assert "Traceback" not in result.stderr
+
+
 def test_unreadable_repository_error_exits_two(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
