@@ -22,6 +22,7 @@ def test_empty_repository_has_ordered_findings_and_low_score(tmp_path) -> None:
     ]
     assert report.score == 25
     assert report.repo_path == str(tmp_path.resolve())
+    assert report.version == "0.2.0"
 
 
 def test_scanner_accepts_custom_deductions(tmp_path: Path) -> None:

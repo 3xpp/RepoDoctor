@@ -33,5 +33,5 @@ def fixed_report() -> Report:
             ),
         ),
         generated_at=datetime(2026, 7, 18, 12, tzinfo=UTC),
-        version="0.1.0",
+        version="0.2.0",
     )

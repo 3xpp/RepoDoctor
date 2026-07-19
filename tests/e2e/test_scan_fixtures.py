@@ -7,18 +7,23 @@ from repo_doctor.cli import app
 from repo_doctor.scanner import scan_repository
 
 FIXTURES = Path(__file__).parents[1] / "fixtures"
+PROJECT_ROOT = Path(__file__).parents[2]
 runner = CliRunner()
 
 
-def test_good_fixture_has_high_score() -> None:
+def test_good_fixture_has_exact_default_report() -> None:
     report = scan_repository(FIXTURES / "good_repo")
-    assert report.score >= 90
+    assert report.score == 100
+    assert len(report.findings) == 7
     assert all(finding.passed for finding in report.findings)
+    assert report.version == "0.2.0"
 
 
-def test_bad_fixture_has_low_score() -> None:
+def test_bad_fixture_has_exact_default_report() -> None:
     report = scan_repository(FIXTURES / "bad_repo")
-    assert report.score < 50
+    assert report.score == 25
+    assert len(report.findings) == 7
+    assert report.version == "0.2.0"
 
 
 def test_fixture_json_cli_output_is_valid() -> None:
@@ -63,3 +68,22 @@ def test_configured_repository_uses_discovery_and_custom_scoring(tmp_path: Path)
         "generated_at",
         "version",
     ]
+
+
+def test_committed_root_policy_matches_builtin_defaults() -> None:
+    policy = PROJECT_ROOT / ".repo-doctor.toml"
+    assert policy.is_file()
+    configured = runner.invoke(
+        app,
+        ["scan", str(PROJECT_ROOT), "--format", "json"],
+    )
+    default_report = scan_repository(PROJECT_ROOT)
+    payload = json.loads(configured.stdout)
+    assert configured.exit_code == 0
+    assert payload["score"] == default_report.score == 85
+    assert [finding["id"] for finding in payload["findings"]] == [
+        finding.id for finding in default_report.findings
+    ]
+    assert sum(finding["passed"] for finding in payload["findings"]) == 5
+    assert len(payload["findings"]) == 7
+    assert payload["version"] == default_report.version == "0.2.0"

@@ -1,0 +1,28 @@
+version = 1
+
+[scoring]
+high = 20
+medium = 10
+low = 5
+info = 0
+
+[checks.readme-exists]
+enabled = true
+
+[checks.readme-sections]
+enabled = true
+
+[checks.license-exists]
+enabled = true
+
+[checks.tests-exist]
+enabled = true
+
+[checks.ci-exists]
+enabled = true
+
+[checks.docker-exists]
+enabled = true
+
+[checks.env-example]
+enabled = true
