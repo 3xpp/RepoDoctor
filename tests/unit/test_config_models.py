@@ -171,6 +171,25 @@ def test_enabled_ids_and_selected_checks_keep_registry_order() -> None:
     )
 
 
+def test_check_selection_preserves_registry_order() -> None:
+    config = RepoDoctorConfig.model_validate(
+        {
+            "version": 1,
+            "checks": {
+                "readme-sections": {"enabled": False},
+                "docker-exists": {"enabled": False},
+            },
+        }
+    )
+    assert [check.id for check in select_checks(config)] == [
+        "readme-exists",
+        "license-exists",
+        "tests-exist",
+        "ci-exists",
+        "env-example",
+    ]
+
+
 def test_severity_deductions_mapping_is_read_only_and_isolated() -> None:
     config = RepoDoctorConfig.model_validate({"version": 1, "scoring": {"high": 30}})
     deductions = severity_deductions(config)

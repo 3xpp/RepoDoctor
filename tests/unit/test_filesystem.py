@@ -1,5 +1,7 @@
 from pathlib import Path
 
+import pytest
+
 from repo_doctor.checks.filesystem import is_protected_path, iter_repository_files
 
 
@@ -25,3 +27,25 @@ def test_repository_traversal_prunes_protected_directories(tmp_path) -> None:
     discovered = [path.relative_to(tmp_path) for path in iter_repository_files(tmp_path)]
 
     assert discovered == [Path("src/app.py")]
+
+
+def test_repository_traversal_skips_excluded_path_before_metadata(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    policy = tmp_path / ".repo-doctor.toml"
+    policy.write_text("version = 1\n", encoding="utf-8")
+    original_is_symlink = Path.is_symlink
+
+    def guarded_is_symlink(path: Path) -> bool:
+        if path == policy:
+            raise AssertionError("excluded policy metadata was inspected")
+        return original_is_symlink(path)
+
+    monkeypatch.setattr(Path, "is_symlink", guarded_is_symlink)
+    files = tuple(
+        iter_repository_files(
+            tmp_path,
+            excluded_paths=frozenset({policy}),
+        )
+    )
+    assert policy not in files

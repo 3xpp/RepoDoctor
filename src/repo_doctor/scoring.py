@@ -1,18 +1,25 @@
-from collections.abc import Sequence
+from collections.abc import Mapping, Sequence
+from types import MappingProxyType
 
 from repo_doctor.models import Finding, Severity
 
 MAX_SCORE = 100
-DEDUCTIONS: dict[Severity, int] = {
-    Severity.INFO: 0,
-    Severity.LOW: 5,
-    Severity.MEDIUM: 10,
-    Severity.HIGH: 20,
-}
+DEDUCTIONS: Mapping[Severity, int] = MappingProxyType(
+    {
+        Severity.INFO: 0,
+        Severity.LOW: 5,
+        Severity.MEDIUM: 10,
+        Severity.HIGH: 20,
+    }
+)
 
 
-def calculate_score(findings: Sequence[Finding]) -> int:
-    deduction = sum(DEDUCTIONS[item.severity] for item in findings if not item.passed)
+def calculate_score(
+    findings: Sequence[Finding],
+    *,
+    deductions: Mapping[Severity, int] = DEDUCTIONS,
+) -> int:
+    deduction = sum(deductions[item.severity] for item in findings if not item.passed)
     return max(0, MAX_SCORE - deduction)
 
 

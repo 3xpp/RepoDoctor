@@ -54,8 +54,12 @@ README_ENV_RE = re.compile(
 )
 
 
-def _iter_candidate_files(repo_path: Path) -> Iterator[Path]:
-    return iter_repository_files(repo_path)
+def _iter_candidate_files(
+    repo_path: Path,
+    *,
+    excluded_paths: frozenset[Path] = frozenset(),
+) -> Iterator[Path]:
+    return iter_repository_files(repo_path, excluded_paths=excluded_paths)
 
 
 def _path_has_env_usage(
@@ -108,7 +112,10 @@ class EnvExampleCheck:
         readme = find_readme(repo_path)
         usage_detected = any(
             _path_has_env_usage(path, readme, repo_path)
-            for path in _iter_candidate_files(repo_path)
+            for path in _iter_candidate_files(
+                repo_path,
+                excluded_paths=excluded_paths,
+            )
         )
         example_exists = _has_env_example(repo_path)
         passed = not usage_detected or example_exists

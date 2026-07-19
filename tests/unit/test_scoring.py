@@ -4,7 +4,7 @@ import pytest
 from pydantic import ValidationError
 
 from repo_doctor.models import Finding, Report, Severity
-from repo_doctor.scoring import MAX_SCORE, calculate_score, summarize_score
+from repo_doctor.scoring import DEDUCTIONS, MAX_SCORE, calculate_score, summarize_score
 
 
 def finding(severity: Severity, *, passed: bool = False) -> Finding:
@@ -38,6 +38,29 @@ def test_passed_findings_do_not_deduct_points() -> None:
 
 def test_score_never_falls_below_zero() -> None:
     assert calculate_score([finding(Severity.HIGH) for _ in range(6)]) == 0
+
+
+def test_custom_severity_deductions_are_applied() -> None:
+    deductions = {
+        Severity.HIGH: 3,
+        Severity.MEDIUM: 2,
+        Severity.LOW: 1,
+        Severity.INFO: 0,
+    }
+    findings = [finding(Severity.HIGH), finding(Severity.MEDIUM), finding(Severity.LOW)]
+    assert calculate_score(findings, deductions=deductions) == 94
+
+
+def test_custom_zero_deduction_and_passed_findings_do_not_lower_score() -> None:
+    deductions = dict(DEDUCTIONS)
+    deductions[Severity.HIGH] = 0
+    assert (
+        calculate_score(
+            [finding(Severity.HIGH), finding(Severity.MEDIUM, passed=True)],
+            deductions=deductions,
+        )
+        == MAX_SCORE
+    )
 
 
 @pytest.mark.parametrize(

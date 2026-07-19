@@ -55,8 +55,15 @@ def is_protected_path(path: Path) -> bool:
     return any(_is_protected_name(part) for part in path.parts)
 
 
-def iter_repository_files(repo_path: Path) -> Iterator[Path]:
-    for directory, dir_names, file_names in repo_path.walk(top_down=True, follow_symlinks=False):
+def iter_repository_files(
+    repo_path: Path,
+    *,
+    excluded_paths: frozenset[Path] = frozenset(),
+) -> Iterator[Path]:
+    for directory, dir_names, file_names in repo_path.walk(
+        top_down=True,
+        follow_symlinks=False,
+    ):
         dir_names[:] = sorted(
             name
             for name in dir_names
@@ -66,5 +73,7 @@ def iter_repository_files(repo_path: Path) -> Iterator[Path]:
         )
         for name in sorted(file_names):
             candidate = directory / name
+            if candidate in excluded_paths:
+                continue
             if not _is_protected_name(name) and not candidate.is_symlink():
                 yield candidate

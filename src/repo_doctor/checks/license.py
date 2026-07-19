@@ -30,7 +30,7 @@ class LicenseCheck:
         excluded_paths: frozenset[Path] = frozenset(),
     ) -> Finding:
         passed = any(
-            not entry.is_symlink() and entry.is_file() and entry.name.casefold() in LICENSE_NAMES
+            entry.name.casefold() in LICENSE_NAMES and not entry.is_symlink() and entry.is_file()
             for entry in repo_path.iterdir()
         )
         return Finding(

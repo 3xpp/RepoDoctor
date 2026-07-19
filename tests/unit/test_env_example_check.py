@@ -27,9 +27,26 @@ def test_undecodable_candidate_is_skipped(tmp_path) -> None:
     assert EnvExampleCheck().run(tmp_path).passed is True
 
 
+def test_effective_policy_is_excluded_from_environment_detection(tmp_path: Path) -> None:
+    policy = tmp_path / ".repo-doctor.toml"
+    policy.write_text("version = 1\n# env_file: .env\n", encoding="utf-8")
+    finding = EnvExampleCheck().run(tmp_path, excluded_paths=frozenset({policy}))
+    assert finding.passed is True
+
+
+def test_other_toml_environment_signal_still_requires_example(tmp_path: Path) -> None:
+    (tmp_path / "application.toml").write_text("# ${APP_TOKEN}\n", encoding="utf-8")
+    finding = EnvExampleCheck().run(tmp_path, excluded_paths=frozenset())
+    assert finding.passed is False
+
+
 def test_full_scanner_never_reads_protected_env_path(tmp_path, monkeypatch) -> None:
     protected = (tmp_path / ".env", tmp_path / ".env.example")
-    monkeypatch.setattr(env_module, "_iter_candidate_files", lambda _repo: iter(protected))
+    monkeypatch.setattr(
+        env_module,
+        "_iter_candidate_files",
+        lambda _repo, *, excluded_paths=frozenset(): iter(protected),
+    )
 
     original_read_text = Path.read_text
 
