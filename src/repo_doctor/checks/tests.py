@@ -19,14 +19,23 @@ TEST_PATTERNS = (
 
 
 class TestsCheck:
-    def run(self, repo_path: Path) -> Finding:
+    @property
+    def id(self) -> str:
+        return "tests-exist"
+
+    def run(
+        self,
+        repo_path: Path,
+        *,
+        excluded_paths: frozenset[Path] = frozenset(),
+    ) -> Finding:
         tests_directory = repo_path / "tests"
         passed = (not tests_directory.is_symlink() and tests_directory.is_dir()) or any(
             path.is_file() and any(fnmatch(path.name, pattern) for pattern in TEST_PATTERNS)
             for path in iter_repository_files(repo_path)
         )
         return Finding(
-            id="tests-exist",
+            id=self.id,
             title="Tests exist",
             description=(
                 "A tests directory or recognized test file is present."

@@ -15,3 +15,7 @@ DEFAULT_CHECKS: tuple[Check, ...] = (
     DockerCheck(),
     EnvExampleCheck(),
 )
+
+DEFAULT_CHECK_IDS = tuple(check.id for check in DEFAULT_CHECKS)
+if len(set(DEFAULT_CHECK_IDS)) != len(DEFAULT_CHECK_IDS):
+    raise RuntimeError("default check IDs must be unique")

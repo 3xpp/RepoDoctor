@@ -100,10 +100,19 @@ def _recognized_section_count(headings: list[str]) -> int:
 
 
 class ReadmeExistsCheck:
-    def run(self, repo_path: Path) -> Finding:
+    @property
+    def id(self) -> str:
+        return "readme-exists"
+
+    def run(
+        self,
+        repo_path: Path,
+        *,
+        excluded_paths: frozenset[Path] = frozenset(),
+    ) -> Finding:
         passed = find_readme(repo_path) is not None
         return Finding(
-            id="readme-exists",
+            id=self.id,
             title="README exists",
             description=(
                 "A supported root README file is present."
@@ -122,7 +131,16 @@ class ReadmeExistsCheck:
 
 
 class ReadmeSectionsCheck:
-    def run(self, repo_path: Path) -> Finding:
+    @property
+    def id(self) -> str:
+        return "readme-sections"
+
+    def run(
+        self,
+        repo_path: Path,
+        *,
+        excluded_paths: frozenset[Path] = frozenset(),
+    ) -> Finding:
         readme = find_readme(repo_path)
         section_count = 0
         if readme is not None:
@@ -137,7 +155,7 @@ class ReadmeSectionsCheck:
             section_count = _recognized_section_count(headings)
         passed = section_count >= 2
         return Finding(
-            id="readme-sections",
+            id=self.id,
             title="README has useful sections",
             description=(
                 f"The README contains {section_count} recognized sections."

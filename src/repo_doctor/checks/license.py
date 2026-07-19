@@ -19,13 +19,22 @@ LICENSE_NAMES = frozenset(
 
 
 class LicenseCheck:
-    def run(self, repo_path: Path) -> Finding:
+    @property
+    def id(self) -> str:
+        return "license-exists"
+
+    def run(
+        self,
+        repo_path: Path,
+        *,
+        excluded_paths: frozenset[Path] = frozenset(),
+    ) -> Finding:
         passed = any(
             not entry.is_symlink() and entry.is_file() and entry.name.casefold() in LICENSE_NAMES
             for entry in repo_path.iterdir()
         )
         return Finding(
-            id="license-exists",
+            id=self.id,
             title="License exists",
             description=(
                 "A recognized root license file is present."

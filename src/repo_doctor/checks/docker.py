@@ -14,13 +14,22 @@ DOCKER_FILES = frozenset(
 
 
 class DockerCheck:
-    def run(self, repo_path: Path) -> Finding:
+    @property
+    def id(self) -> str:
+        return "docker-exists"
+
+    def run(
+        self,
+        repo_path: Path,
+        *,
+        excluded_paths: frozenset[Path] = frozenset(),
+    ) -> Finding:
         passed = any(
             not (repo_path / name).is_symlink() and (repo_path / name).is_file()
             for name in DOCKER_FILES
         )
         return Finding(
-            id="docker-exists",
+            id=self.id,
             title="Docker setup exists",
             description=(
                 "A supported Docker or Compose file is present."

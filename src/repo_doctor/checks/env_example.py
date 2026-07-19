@@ -95,7 +95,16 @@ def _has_env_example(repo_path: Path) -> bool:
 
 
 class EnvExampleCheck:
-    def run(self, repo_path: Path) -> Finding:
+    @property
+    def id(self) -> str:
+        return "env-example"
+
+    def run(
+        self,
+        repo_path: Path,
+        *,
+        excluded_paths: frozenset[Path] = frozenset(),
+    ) -> Finding:
         readme = find_readme(repo_path)
         usage_detected = any(
             _path_has_env_usage(path, readme, repo_path)
@@ -113,7 +122,7 @@ class EnvExampleCheck:
             description = "Environment usage was detected without a root .env.example."
             recommendation = "Add .env.example with placeholder names and no real secret values."
         return Finding(
-            id="env-example",
+            id=self.id,
             title="Environment example is documented",
             description=description,
             severity=Severity.MEDIUM,

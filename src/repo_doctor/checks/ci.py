@@ -4,7 +4,16 @@ from repo_doctor.models import Finding, Severity
 
 
 class GitHubActionsCheck:
-    def run(self, repo_path: Path) -> Finding:
+    @property
+    def id(self) -> str:
+        return "ci-exists"
+
+    def run(
+        self,
+        repo_path: Path,
+        *,
+        excluded_paths: frozenset[Path] = frozenset(),
+    ) -> Finding:
         github_directory = repo_path / ".github"
         workflows = repo_path / ".github" / "workflows"
         passed = (
@@ -19,7 +28,7 @@ class GitHubActionsCheck:
             )
         )
         return Finding(
-            id="ci-exists",
+            id=self.id,
             title="GitHub Actions workflow exists",
             description=(
                 "At least one GitHub Actions workflow is present."
