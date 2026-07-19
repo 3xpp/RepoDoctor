@@ -1,7 +1,7 @@
 # GitHub Repo Doctor
 
 GitHub Repo Doctor is a local-only Python CLI that gives GitHub-style repositories
-a practical readiness score and specific fixes. Phase 0 checks README quality,
+a practical readiness score and specific fixes. Repo Doctor checks README quality,
 licensing, tests, GitHub Actions, Docker setup, and environment-file hygiene.
 
 It never uploads repository data, calls a remote API, or rewrites scanned files.
@@ -36,10 +36,40 @@ uv tool install .
 repo-doctor scan .
 repo-doctor scan . --format json
 repo-doctor scan . --fail-under 80
+repo-doctor scan . --config custom-doctor.toml
+repo-doctor scan . --format markdown --output report.md
 ```
 
 The path defaults to the current directory. A low score still exits successfully
 unless `--fail-under` is supplied.
+
+## Configuration
+
+Repo Doctor automatically loads `.repo-doctor.toml` from the resolved repository
+root. Use `--config FILE` to replace automatic discovery with one explicit policy.
+Omitted scoring values and check tables inherit the built-in defaults.
+
+```toml
+version = 1
+
+[scoring]
+high = 20
+medium = 10
+low = 5
+info = 0
+
+[checks.docker-exists]
+enabled = false
+```
+
+Checks can be configured by their finding IDs: `readme-exists`,
+`readme-sections`, `license-exists`, `tests-exist`, `ci-exists`,
+`docker-exists`, and `env-example`. Disabled checks do not run, appear in reports,
+or deduct points. At least one check must remain enabled.
+
+Only one policy is used. An explicit `--config` replaces repository discovery;
+the two files are never merged. Invalid versions, keys, IDs, types, deductions, or
+duplicate `--config` options exit 2 without printing policy values.
 
 ## Example terminal report
 
@@ -96,11 +126,13 @@ The stable JSON schema has this shape:
     }
   ],
   "generated_at": "2026-07-18T12:00:00Z",
-  "version": "0.1.0"
+  "version": "0.2.0"
 }
 ```
 
-Passed findings remain in JSON so automation receives all seven check results.
+Passed and failed enabled checks remain in JSON in registry order. Configuration
+metadata is not embedded, so preserve a custom policy alongside reports when an
+auditable score calculation is required.
 
 ## Markdown output
 
@@ -111,7 +143,8 @@ repo-doctor scan . --format markdown --output report.md
 
 Output files are allowed only for JSON and Markdown. Repo Doctor rejects protected
 secret path components, symbolic-link components, and existing non-regular targets
-before it creates directories or writes a report.
+before it creates directories or writes a report. Output also cannot target the
+reserved repository-root policy path or the active policy selected with `--config`.
 
 ## CI threshold
 
@@ -141,13 +174,15 @@ inputs rather than becoming part of the project's own test collection.
 
 ## Scoring
 
-Scores start at 100. Failed high, medium, and low findings deduct 20, 10, and
-5 points respectively; informational findings deduct nothing. Scores never fall
-below zero. See [docs/SCORING.md](docs/SCORING.md) for the complete contract.
+Scores start at 100. By default, failed high, medium, and low findings deduct 20,
+10, and 5 points respectively; informational findings deduct nothing. A policy may
+configure these global severity deductions within the documented constraints.
+Scores never fall below zero. See [docs/SCORING.md](docs/SCORING.md) for the complete
+contract.
 
 ## Limitations
 
-Phase 0 does not scan remote repositories, authenticate with GitHub, inspect
+The local scanner does not scan remote repositories, authenticate with GitHub, inspect
 dependency graphs, find vulnerabilities, judge source-code quality, verify license
 contents, detect every possible environment-access idiom, or propose automatic fixes.
 It does not check screenshots, contribution guides, codes of conduct, or security
@@ -161,7 +196,7 @@ strict UTF-8 are skipped rather than decoded heuristically.
 ## Roadmap
 
 - Add more deterministic open-source hygiene checks.
-- Support explicit configuration of check applicability and weights.
+- Add deterministic contribution, security-policy, and community-health checks.
 - Add remote GitHub scanning only after the local contract is mature.
 - Explore opt-in fix guidance without modifying repositories automatically.
 

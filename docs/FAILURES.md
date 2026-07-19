@@ -72,3 +72,14 @@ This log records concrete implementation or environment failures and their resol
 - **Resolution:** Added `license-files = ["LICENSE"]` to project metadata, rebuilt,
   and verified the license file in both the sdist and wheel manifests.
 - **Status:** Resolved; both release archives contain the tracked license text.
+
+## 2026-07-19 — Strict Pydantic literal accepted a Boolean version
+
+- **Symptom:** A configuration-model regression test showed that
+  `ConfigDict(strict=True)` allowed `True` to satisfy `Literal[1]` because Python
+  Boolean values are integer subclasses.
+- **Impact:** Without an additional guard, a TOML Boolean could be accepted as
+  configuration schema version 1.
+- **Resolution:** Added a before-validator requiring the exact built-in `int` type
+  and retained the regression test for Boolean and non-integer versions.
+- **Status:** Resolved; only the integer `1` is accepted as version 1.

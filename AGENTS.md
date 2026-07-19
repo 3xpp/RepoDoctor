@@ -2,7 +2,7 @@
 
 ## Project Scope
 
-GitHub Repo Doctor is a local-only Python CLI that evaluates repository readiness. Keep Phase 0 deterministic: do not add remote scanning, GitHub API access, authentication, AI services, web applications, databases, or automatic rewriting of scanned repositories.
+GitHub Repo Doctor is a local-only Python CLI that evaluates repository readiness. Keep the local scanner deterministic: do not add remote scanning, GitHub API access, authentication, AI services, web applications, databases, or automatic rewriting of scanned repositories.
 
 ## Tooling
 
@@ -19,6 +19,12 @@ GitHub Repo Doctor is a local-only Python CLI that evaluates repository readines
 - Define checks through the shared check protocol and return stable Pydantic findings.
 - Use fixture-based tests for repository checks and end-to-end behavior.
 - Keep JSON field names and semantics stable; treat schema changes as deliberate compatibility changes.
+- Keep `.repo-doctor.toml` schema changes versioned, strict, and backward-conscious.
+- Derive configurable check IDs from the ordered check registry; never duplicate the
+  registry in configuration code.
+- Add default-compatibility, invalid-config, and secret-safety tests for every policy
+  behavior change.
+- Keep active policy contents out of environment-usage detection and report output.
 - Update `docs/SCORING.md` whenever checks, severities, or deductions change.
 - Prefer `pathlib` and the standard library for filesystem work.
 - Keep source files focused and avoid unrelated refactors.

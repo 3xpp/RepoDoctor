@@ -68,3 +68,30 @@ complexity are justified.
 
 The user approved `uv_build` as the build-only backend paired with uv. Application
 runtime dependencies remain limited to Typer, Rich, and Pydantic.
+
+## 2026-07-19 — Use one versioned TOML policy
+
+Repo Doctor discovers `.repo-doctor.toml` at the resolved repository root. One
+explicit `--config` replaces discovery instead of merging policies. Standard-library
+`tomllib` and strict Pydantic models keep the contract deterministic without a new
+runtime dependency.
+
+## 2026-07-19 — Filter checks and inject global severity deductions
+
+Checks expose unique stable IDs before execution. Disabled checks are omitted rather
+than reported as passes, registry order remains authoritative, and configurable
+deductions preserve severity ordering. Disabling every check is invalid.
+
+## 2026-07-19 — Preserve the report shape and version semantic changes
+
+Phase 1 keeps every Finding and Report field unchanged but allows the findings list
+to contain only enabled checks. Version `0.2.0` signals that semantic change. Reports
+do not embed policy metadata; users needing score reproducibility preserve the policy
+beside the report.
+
+## 2026-07-19 — Treat policy files as bounded inputs and protected outputs
+
+Configuration loading rejects protected paths, symlinks, non-regular files,
+oversized content, invalid UTF-8, and unsafe schema values before scanning. Error
+translation omits input values. Report output cannot replace the active policy or
+the reserved repository-root policy path.
