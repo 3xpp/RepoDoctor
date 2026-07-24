@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import re
+import tomllib
 from pathlib import Path
 
 PROJECT_ROOT = Path(__file__).parents[2]
@@ -56,3 +57,24 @@ def test_ci_workflow_is_pinned_and_runs_the_release_contract() -> None:
             "v9.0.0",
         ),
     ]
+
+
+def test_project_urls_and_readme_badges_use_the_canonical_repository() -> None:
+    with (PROJECT_ROOT / "pyproject.toml").open("rb") as stream:
+        project = tomllib.load(stream)["project"]
+
+    assert project["urls"] == {
+        "Homepage": "https://github.com/3xpp/RepoDoctor",
+        "Repository": "https://github.com/3xpp/RepoDoctor",
+        "Issues": "https://github.com/3xpp/RepoDoctor/issues",
+        "Security": "https://github.com/3xpp/RepoDoctor/security/policy",
+    }
+
+    readme = (PROJECT_ROOT / "README.md").read_text(encoding="utf-8")
+    required = (
+        "actions/workflows/ci.yml/badge.svg",
+        "python-%3E%3D3.12",
+        "License-MIT",
+        "github/v/release/3xpp/RepoDoctor?include_prereleases",
+    )
+    assert all(fragment in readme for fragment in required)

@@ -23,6 +23,12 @@ dependencies = [
   "typer>=0.15,<1",
 ]
 
+[project.urls]
+Homepage = "https://github.com/3xpp/RepoDoctor"
+Repository = "https://github.com/3xpp/RepoDoctor"
+Issues = "https://github.com/3xpp/RepoDoctor/issues"
+Security = "https://github.com/3xpp/RepoDoctor/security/policy"
+
 [project.scripts]
 repo-doctor = "repo_doctor.cli:app"
 

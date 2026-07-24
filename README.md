@@ -1,5 +1,10 @@
 # GitHub Repo Doctor
 
+[![CI](https://github.com/3xpp/RepoDoctor/actions/workflows/ci.yml/badge.svg)](https://github.com/3xpp/RepoDoctor/actions/workflows/ci.yml)
+[![Python >=3.12](https://img.shields.io/badge/python-%3E%3D3.12-blue.svg)](https://www.python.org/downloads/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![GitHub release](https://img.shields.io/github/v/release/3xpp/RepoDoctor?include_prereleases&sort=semver)](https://github.com/3xpp/RepoDoctor/releases)
+
 GitHub Repo Doctor is a local-only Python CLI that gives GitHub-style repositories
 a practical readiness score and specific fixes. Repo Doctor checks README quality,
 licensing, tests, GitHub Actions, Docker setup, and environment-file hygiene.
