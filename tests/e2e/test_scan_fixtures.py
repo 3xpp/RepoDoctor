@@ -80,10 +80,10 @@ def test_committed_root_policy_matches_builtin_defaults() -> None:
     default_report = scan_repository(PROJECT_ROOT)
     payload = json.loads(configured.stdout)
     assert configured.exit_code == 0
-    assert payload["score"] == default_report.score == 85
+    assert payload["score"] == default_report.score == 95
     assert [finding["id"] for finding in payload["findings"]] == [
         finding.id for finding in default_report.findings
     ]
-    assert sum(finding["passed"] for finding in payload["findings"]) == 5
+    assert sum(finding["passed"] for finding in payload["findings"]) == 6
     assert len(payload["findings"]) == 7
     assert payload["version"] == default_report.version == "0.2.0"
