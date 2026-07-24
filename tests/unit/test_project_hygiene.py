@@ -186,3 +186,17 @@ def test_issue_forms_are_structured_and_route_security_privately() -> None:
     assert len(form_names) == len(set(form_names))
     assert "render: shell" in bug
     assert "id: local-scope" in feature
+
+
+def test_release_guidance_is_versioned_and_safety_first() -> None:
+    agents = (PROJECT_ROOT / "AGENTS.md").read_text(encoding="utf-8")
+    decisions = (PROJECT_ROOT / "docs" / "DECISIONS.md").read_text(encoding="utf-8")
+    notes = (PROJECT_ROOT / "docs" / "releases" / "v0.2.0.md").read_text(encoding="utf-8")
+
+    assert "immutable commit SHAs" in agents
+    assert "Never delete or move a published release tag" in agents
+    assert "CI succeeds for the exact release commit" in agents
+    assert "solo-maintainer CI and pre-release policy" in decisions
+    assert "first public pre-release" in notes
+    assert "uv tool install git+https://github.com/3xpp/RepoDoctor.git@v0.2.0" in notes
+    assert "not a vulnerability scanner" in notes

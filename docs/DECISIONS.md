@@ -95,3 +95,12 @@ Configuration loading rejects protected paths, symlinks, non-regular files,
 oversized content, invalid UTF-8, and unsafe schema values before scanning. Error
 translation omits input values. Report output cannot replace the active policy or
 the reserved repository-root policy path.
+
+## 2026-07-24 — Use solo-maintainer CI and pre-release policy
+
+Repository polish is separated from scanner semantics. CI tests every supported
+Python version and runs formatting, lint, typing, packaging, and Repo Doctor
+dogfooding with immutable action pins. Direct pushes remain available for solo
+maintenance, while an annotated tag and GitHub pre-release require the exact pushed
+commit's successful CI run. Failed publication is retried without deleting or moving
+the valid tag.

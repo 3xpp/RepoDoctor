@@ -57,3 +57,7 @@ Verify both good and bad fixtures with the CLI, JSON output validity, and `--fai
 - Preserve unrelated user changes.
 - Do not push unless explicitly asked.
 - Finish with a clean worktree unless an intentional exception is documented.
+- Pin GitHub Actions to reviewed immutable commit SHAs and retain version comments.
+- Keep community guidance synchronized with the commands contributors actually run.
+- Create a release tag only after local gates pass and CI succeeds for the exact release commit.
+- Never delete or move a published release tag to bypass a release failure.
