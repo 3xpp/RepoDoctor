@@ -83,3 +83,16 @@ This log records concrete implementation or environment failures and their resol
 - **Resolution:** Added a before-validator requiring the exact built-in `int` type
   and retained the regression test for Boolean and non-integer versions.
 - **Status:** Resolved; only the integer `1` is accepted as version 1.
+
+## 2026-07-24 — uv build added an out-directory marker
+
+- **Symptom:** The fresh release-artifact audit expected exactly two files, but
+  `uv build --out-dir` created its own `.gitignore` marker beside the source
+  distribution and wheel.
+- **Impact:** The audit stopped before metadata validation. No project file, Git
+  history, release tag, or GitHub state was changed.
+- **Resolution:** Count only `.tar.gz` and `.whl` distributions, allow the known
+  `.gitignore` marker, and reject every other unexpected file in the build
+  directory.
+- **Status:** Resolved; the corrected audit passed and both distributions passed
+  manifest, secret-name, license, metadata, and runtime-dependency checks.
