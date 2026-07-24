@@ -96,3 +96,17 @@ This log records concrete implementation or environment failures and their resol
   directory.
 - **Status:** Resolved; the corrected audit passed and both distributions passed
   manifest, secret-name, license, metadata, and runtime-dependency checks.
+
+## 2026-07-24 — GitHub Actions help output contained ANSI styling
+
+- **Symptom:** Exact CI run `30109025541` failed
+  `tests/unit/test_cli.py::test_scan_help_lists_config_option` on Python 3.12,
+  3.13, and 3.14 because Rich inserted ANSI style sequences between the two
+  hyphens in `--config` when `GITHUB_ACTIONS=true`.
+- **Impact:** The release process stopped at its exact-commit CI gate. No
+  `v0.2.0` tag or GitHub release was created.
+- **Resolution:** Made the regression deterministic by setting
+  `GITHUB_ACTIONS=true` in the test and normalizing ANSI control sequences before
+  asserting that the CLI help lists `--config`. CLI behavior was not changed.
+- **Status:** Resolved locally and gated on the corrected exact-commit CI run
+  succeeding before any tag or release is created.

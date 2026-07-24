@@ -1,5 +1,6 @@
 import json
 import os
+import re
 from pathlib import Path
 
 import pytest
@@ -10,6 +11,7 @@ from repo_doctor.cli import app
 from repo_doctor.scanner import RepositoryScanError
 
 runner = CliRunner()
+ANSI_ESCAPE_RE = re.compile(r"\x1b\[[0-?]*[ -/]*[@-~]")
 
 
 def write_policy(path: Path, body: str = "") -> None:
@@ -429,11 +431,14 @@ def test_configured_json_keeps_report_shape(tmp_path: Path) -> None:
     assert "configuration" not in payload
 
 
-def test_scan_help_lists_config_option() -> None:
+def test_scan_help_lists_config_option(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("GITHUB_ACTIONS", "true")
+
     result = runner.invoke(app, ["scan", "--help"])
+    normalized_stdout = ANSI_ESCAPE_RE.sub("", result.stdout)
 
     assert result.exit_code == 0
-    assert "--config" in result.stdout
+    assert "--config" in normalized_stdout
 
 
 def test_invalid_config_value_is_not_echoed(tmp_path: Path) -> None:
