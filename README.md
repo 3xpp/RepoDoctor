@@ -205,6 +205,18 @@ strict UTF-8 are skipped rather than decoded heuristically.
 - Add remote GitHub scanning only after the local contract is mature.
 - Explore opt-in fix guidance without modifying repositories automatically.
 
+## Community
+
+- Read the [contributing guide](CONTRIBUTING.md) before proposing changes.
+- Follow the [Code of Conduct](CODE_OF_CONDUCT.md).
+- Report vulnerabilities through the private route in the [security policy](SECURITY.md).
+- Review the [Pull request checklist](.github/pull_request_template.md).
+- [Report a bug](https://github.com/3xpp/RepoDoctor/issues/new?template=bug-report.yml).
+- [Request a feature](https://github.com/3xpp/RepoDoctor/issues/new?template=feature-request.yml).
+
+Never include live credentials, `.env` contents, or private repository data in an
+issue or pull request.
+
 ## License
 
 GitHub Repo Doctor is available under the [MIT License](LICENSE).

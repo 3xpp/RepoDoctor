@@ -1,0 +1,75 @@
+name: Bug report
+description: Report a reproducible problem with GitHub Repo Doctor.
+title: "[Bug]: "
+labels:
+  - bug
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting a bug. For security vulnerabilities, use
+        [private vulnerability reporting](https://github.com/3xpp/RepoDoctor/security/advisories/new)
+        instead of a public issue.
+  - type: input
+    id: version
+    attributes:
+      label: Repo Doctor version
+      description: Provide the installed release version or commit SHA.
+      placeholder: "0.2.0 or f56a4f9"
+    validations:
+      required: true
+  - type: input
+    id: python-version
+    attributes:
+      label: Python version
+      description: Provide the output of `python --version`.
+      placeholder: "Python 3.12.10"
+    validations:
+      required: true
+  - type: input
+    id: operating-system
+    attributes:
+      label: Operating system
+      placeholder: "Ubuntu 24.04, macOS 15, or Windows 11"
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Reproduction steps
+      description: Describe the smallest repository layout, command, and policy that reproduce the problem. Use synthetic data only.
+      placeholder: |
+        1. Create ...
+        2. Run ...
+        3. Observe ...
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+    validations:
+      required: true
+  - type: textarea
+    id: diagnostic-output
+    attributes:
+      label: Sanitized diagnostic output
+      description: Remove private repository data and all secret values. Never paste `.env` contents.
+      render: shell
+  - type: checkboxes
+    id: submission-checklist
+    attributes:
+      label: Submission checklist
+      options:
+        - label: I searched existing issues for the same problem.
+          required: true
+        - label: I sanitized all diagnostic output and examples.
+          required: true
+        - label: I agree to follow the project's [Code of Conduct](https://github.com/3xpp/RepoDoctor/blob/main/CODE_OF_CONDUCT.md).
+          required: true

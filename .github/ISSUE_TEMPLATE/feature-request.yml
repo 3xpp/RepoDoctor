@@ -1,0 +1,50 @@
+name: Feature request
+description: Suggest a practical improvement to GitHub Repo Doctor.
+title: "[Feature]: "
+labels:
+  - enhancement
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Repo Doctor currently remains deterministic and local-only. Remote scanning,
+        authentication, GitHub API access, AI services, web applications, and databases
+        are outside the current scope.
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What repository-readiness problem should this solve?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+      description: Describe the behavior and expected user experience.
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+  - type: textarea
+    id: local-scope
+    attributes:
+      label: Local-only scope
+      description: Explain how this preserves deterministic, local-only scanning.
+    validations:
+      required: true
+  - type: textarea
+    id: additional-context
+    attributes:
+      label: Additional context
+  - type: checkboxes
+    id: submission-checklist
+    attributes:
+      label: Submission checklist
+      options:
+        - label: I searched existing issues for similar requests.
+          required: true
+        - label: I agree to follow the project's [Code of Conduct](https://github.com/3xpp/RepoDoctor/blob/main/CODE_OF_CONDUCT.md).
+          required: true
